@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const SECRET = process.env.JWT_SECRET;
 // Here we will add all routes related to authentication
 // POST /api/auth/register
@@ -30,7 +30,7 @@ router.post("/register", async (req, res) => {
         }
     });
     // Generate a token
-    const token = jwt.sign({userId: user.id}, SECRET, {expiresIn: "1h"});
+    const token = jwt.sign({userId: user.id}, SECRET, {expiresIn: "24h"});
     
     res.status(201).json({
        message: "User registered successfully",
@@ -46,7 +46,7 @@ router.post("/login", async (req, res) => {
    }
    // Find the user
    const user = await prisma.user.findUnique({
-     where: { email },
+     where: {email},
    });
    if (!user) {
      return res.status(401).json({ error: "Invalid credentials" });
