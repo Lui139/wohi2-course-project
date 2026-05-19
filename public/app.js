@@ -31,6 +31,7 @@ async function apiFetch(route, options = {}) {
   const headers = { ...options.headers };
   if (!isFormData) headers["Content-Type"] = "application/json";
   if (token) headers["Authorization"] = `Bearer ${token}`;
+  
   const res = await fetch(`${CONFIG.API_URL}${route}`, { ...options, headers });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || data.msg || "Request failed");
@@ -99,7 +100,9 @@ async function handleAuth(e) {
       method: "POST",
       body: JSON.stringify(body),
     });
+    
     setToken(data.token);
+
     showApp();
   } catch (err) {
     errorEl.textContent = err.message;

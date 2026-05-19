@@ -9,8 +9,7 @@ it("registers, hashes the password, returns a token", async () => {
 
     expect(res.status).toBe(201);
     expect(res.body.token).toEqual(expect.any(String));
-
-    const user = await prisma.user.findUnique({ where: { email: "a@test.io" } });
+    const user = await prisma.user.findUnique({ where: { email: "a@test.io" }});
     expect(user.password).not.toBe("pw12345"); // not plain
     expect(await bcrypt.compare("pw12345", user.password)).toBe(true); // valid hash
 });

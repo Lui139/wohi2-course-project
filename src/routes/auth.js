@@ -42,9 +42,9 @@ router.post("/register", async (req, res) => {
 // POST /api/auth/login
 router.post("/login", async (req, res) => {
    const { email, password } = req.body;
-   if (!email || !password) {
-     throw new ValidationError("email and password are required");
-   }
+  //  if (!email || !password) {
+  //    throw new ValidationError("email and password are required");
+  //  }
    // Find the user
    const user = await prisma.user.findUnique({
      where: {email},
@@ -56,7 +56,7 @@ router.post("/login", async (req, res) => {
    const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-     throw new UnauthorizedError("Invalid credentials");
+     throw new ForbiddenError("Invalid credentials");
     }
 
     // Generate a token

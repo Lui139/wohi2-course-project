@@ -8,9 +8,10 @@ function authenticate(req, res, next) {
         throw new UnauthorizedError("No token provided");
     }
     try {
-        req.user = jwt.verify(authHeader.split(" ") [1], SECRET, {algorithms: [HS256]});
+        // req.user = jwt.verify(authHeader.split(" ") [1], SECRET, {algorithms: [HS256]});
+        req.user = jwt.verify(authHeader.split(" ") [1], SECRET);
         next();
-    } catch {
+    } catch(err) {
         req.log.warn({}, "Error authenticating");
         throw new ForbiddenError("Invalid or expired token");
     }

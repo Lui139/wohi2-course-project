@@ -119,7 +119,7 @@ router.get("/", async (req, res) => {
 // Show a specific question
 router.get("/:questionId", async (req, res) => {
     const questionId = Number(req.params.questionId);
-    const test = await prisma.question.findUnique({
+    const question = await prisma.question.findUnique({
         where: { id: questionId },
         include: { 
             keywords: true, 
@@ -129,18 +129,21 @@ router.get("/:questionId", async (req, res) => {
         },
     });
 
-    if (!test) {
+    if (!question) {
         throw new NotFoundError("Question not found");
     }
-    res.json(formatQuestion(test));
+    res.json(formatQuestion(question));
 });
 
 
 // POST /api/questions
 // Create a new question
 router.post("/", upload.single("image"), async (req, res) => {
-
     const { question, answer, keywords } = QuestionInput.parse(req.body);
+
+    if (!question || !answer) {
+        throw new ValidationError("question and answer are mandatory");
+    }
     
     const keywordsArray = parseKeywords(keywords);
     const imageUrl = req.file ? `/uploads/${req.file.filename}`:null;

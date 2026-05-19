@@ -15,10 +15,9 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/questions", questionsRouter);
-
-app.use((req,res) => {
-  throw new NotFoundError();
+app.use((req,res) => {throw new NotFoundError();
 });
+//app.use((req, res) => res.status(404).json({message: "Not found" } ));
 
 app.use(errorHandler);
 module.exports = app;
