@@ -7,22 +7,22 @@ const seedQuestions = [
 {
     question: "What is the capital of Finland?",
     answer: "Helsinki",
-    keywords: ["country", "capital", "Helsinki"],
+    keywords: ["country", "capital", "Finland"],
 },
 {
     question: "What is the capital of Peru?",
     answer: "Lima",
-    keywords: ["country", "capital", "Lima"],
+    keywords: ["country", "capital", "Peru"],
 },
 {
     question: "What is the capital of Tibet?",
     answer: "Lhasa",
-    keywords: ["country", "capital", "Lhasa"],
+    keywords: ["country", "capital", "Tibet"],
 },
 {
     question: "What is the capital of India?",
     answer: "New Delhi",
-    keywords: ["country", "capital", "New Delhi"],
+    keywords: ["country", "capital", "India"],
 },
 ];
 

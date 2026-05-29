@@ -13,7 +13,7 @@ const CONFIG = {
   QUESTIONS_PER_PAGE: 5,
   STORAGE_KEY: "jwt_token",
   API_FIELDS: {
-    ATTEMPT_COUNT: "attemptCount",
+    //ATTEMPT_COUNT: "attemptCount",
     //ATTEMPTED: "attempted",
     SOLVED: "attempted",
   },
