@@ -158,7 +158,7 @@ router.post("/", upload.single("image"), async (req, res) => {
         include: { 
             keywords: true, 
             user: true,
-            attempts: { where: { userId: req.user.userId }, take 1 },
+            attempts: { where: { userId: req.user.userId }, take: 1 },
             _count: { select: { attempts: true }  },
         },
     });
