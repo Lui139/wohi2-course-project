@@ -45,10 +45,10 @@ function formatQuestion(question) {
          keywords: question.keywords.map((k) => k.name),
          userName: question.user? question.user.name : null,
          attempted: question.attempts && question.attempts.length > 0,
-         attemptCount: question._count?.attempts ?? 0,
+         attemptCount: question._count.attempts ?? 0,
          user: undefined,
         _count: undefined,
-        attempts: undefined   
+        attempts: undefined,   
     };
 }
 
@@ -77,10 +77,9 @@ router.use((err, req, res, next) => {
 // List all questions
 router.get("/", async (req, res) => {
     const {keyword} = req.query;
-
-    if (!req.token || req.token === "") {
-        throw new UnauthorizedError("No token provided");
-    }
+    //if (!req.token || req.token === "") {
+    //    throw new UnauthorizedError("No token provided");
+    //}
 
     const where = keyword
         ? { keywords: { some: { name: keyword } } }
@@ -233,6 +232,12 @@ router.post("/:questionId/play", async (req, res) => {
         throw new NotFoundError("Question not found");
     }
 
+// const attempt = await prisma.attempt.upsert({
+    //     where: { userId_questionId: { userId: req.user.userId, questionId } },
+    //     update: {},
+    //     create: {userId: req.user.userId, questionId}
+    // });
+
     const data = req.body;
 
     if(question.answer === data.answer){
@@ -259,13 +264,6 @@ router.post("/:questionId/play", async (req, res) => {
             //createdAt: attempt.createdAt,
         });
     }
-
-    // const attempt = await prisma.attempt.upsert({
-    //     where: { userId_questionId: { userId: req.user.userId, questionId } },
-    //     update: {},
-    //     create: {userId: req.user.userId, questionId}
-    // });
-
 
 });
 

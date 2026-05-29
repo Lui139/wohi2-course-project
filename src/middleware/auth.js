@@ -8,7 +8,7 @@ function authenticate(req, res, next) {
         throw new UnauthorizedError("No token provided");
     }
     try {
-        // req.user = jwt.verify(authHeader.split(" ") [1], SECRET, {algorithms: [HS256]});
+        // req.user = jwt.verify(authHeader.split(" ") [1], SECRET, { algorithms: [HS256] });
         req.user = jwt.verify(authHeader.split(" ") [1], SECRET);
         next();
     } catch(err) {

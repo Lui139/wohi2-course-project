@@ -14,7 +14,7 @@ const CONFIG = {
   STORAGE_KEY: "jwt_token",
   API_FIELDS: {
     ATTEMPT_COUNT: "attemptCount",
-    ATTEMPTED: "attempted",
-    SOLVED: "solved",
+    //ATTEMPTED: "attempted",
+    SOLVED: "attempted",
   },
 };

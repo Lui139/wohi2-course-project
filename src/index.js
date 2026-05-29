@@ -1,7 +1,6 @@
 const app = require("./app");
-const prisma = require("./lib/prisma");
 const logger = require("./lib/logger");
-//const pinoHttp = require("pino-http");
+const prisma = require("./lib/prisma");
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
@@ -16,10 +15,6 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 
-//app.use(pinoHttp({
-//  logger,
-//  autologging: {ignore: (req) => req.url.startsWith("/uploads") },
-//}));
 
 // Start the server
 //app.listen(PORT, () => {

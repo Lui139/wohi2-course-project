@@ -3,18 +3,18 @@ const prisma = require("../lib/prisma");
 
 async function isOwner (req, res, next) {
     const id = Number(req.params.questionId);
-    const test = await prisma.question.findUnique({
+    const question = await prisma.question.findUnique({
        where: { id },
        include: { keywords: true },
     });
-    if (!test) {
+    if (!question) {
       throw new NotFoundError("Question not found");
     }
-    if (test.userId !== req.user.userId) {
+    if (question.userId !== req.user.userId) {
       throw new ForbiddenError("You can only modify your own questions");
     }
     // Attach the record to the request so the route handler can reuse it
-    req.test = test;
+    req.question = question;
     next();
 }
 

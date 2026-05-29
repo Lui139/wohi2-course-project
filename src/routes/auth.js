@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const { ValidationError, ConflictError, UnauthorizedError } = require("../lib/errors");
 const SECRET = process.env.JWT_SECRET;
 // Here we will add all routes related to authentication
+
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
     const { email, password, name } = req.body;
@@ -42,9 +43,9 @@ router.post("/register", async (req, res) => {
 // POST /api/auth/login
 router.post("/login", async (req, res) => {
    const { email, password } = req.body;
-  //  if (!email || !password) {
-  //    throw new ValidationError("email and password are required");
-  //  }
+    if (!email || !password) {
+      throw new ValidationError("email and password are required");
+    }
    // Find the user
    const user = await prisma.user.findUnique({
      where: {email},

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">27.38% </span>
+                <span class="strong">34.88% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/84</span>
+                <span class='fraction'>30/86</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.81% </span>
+                <span class="strong">14.58% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/44</span>
+                <span class='fraction'>7/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.66% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/15</span>
+                <span class='fraction'>3/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.04% </span>
+                <span class="strong">35.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>23/82</span>
+                <span class='fraction'>30/84</span>
             </div>
         
             
@@ -332,7 +332,9 @@
 <a name='L267'></a><a href='#L267'>267</a>
 <a name='L268'></a><a href='#L268'>268</a>
 <a name='L269'></a><a href='#L269'>269</a>
-<a name='L270'></a><a href='#L270'>270</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -411,7 +413,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -452,8 +453,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -463,8 +464,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -473,12 +474,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -680,7 +684,6 @@ router.use((err, req, res, next) =&gt; {
 // List all questions
 router.get("/", <span class="fstat-no" title="function not covered" >async </span>(req, res) =&gt; {
     const {keyword} = <span class="cstat-no" title="statement not covered" >req.query;</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!req.token || req.token === "") {</span>
 <span class="cstat-no" title="statement not covered" >        throw new UnauthorizedError("No token provided");</span>
     }
@@ -720,9 +723,9 @@ router.get("/", <span class="fstat-no" title="function not covered" >async </spa
 &nbsp;
 //GET /api/questions/:questionId
 // Show a specific question
-router.get("/:questionId", <span class="fstat-no" title="function not covered" >async </span>(req, res) =&gt; {
-    const questionId = <span class="cstat-no" title="statement not covered" >Number(req.params.questionId);</span>
-    const test = <span class="cstat-no" title="statement not covered" >await prisma.question.findUnique({</span>
+router.get("/:questionId", async (req, res) =&gt; {
+    const questionId = Number(req.params.questionId);
+    const question = await prisma.question.findUnique({
         where: { id: questionId },
         include: { 
             keywords: true, 
@@ -732,22 +735,25 @@ router.get("/:questionId", <span class="fstat-no" title="function not covered" >
         },
     });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (!test) {</span>
-<span class="cstat-no" title="statement not covered" >        throw new NotFoundError("Question not found");</span>
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (!question) {
+        throw new NotFoundError("Question not found");
     }
-<span class="cstat-no" title="statement not covered" >    res.json(formatQuestion(test));</span>
+<span class="cstat-no" title="statement not covered" >    res.json(formatQuestion(question));</span>
 });
 &nbsp;
 &nbsp;
 // POST /api/questions
 // Create a new question
-router.post("/", upload.single("image"), <span class="fstat-no" title="function not covered" >async </span>(req, res) =&gt; {
+router.post("/", upload.single("image"), async (req, res) =&gt; {
+    const { question, answer, keywords } = QuestionInput.parse(req.body);
 &nbsp;
-    const { question, answer, keywords } = <span class="cstat-no" title="statement not covered" >QuestionInput.parse(req.body);</span>
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!question || <span class="branch-1 cbranch-no" title="branch not covered" >!answer)</span> {
+<span class="cstat-no" title="statement not covered" >        throw new ValidationError("question and answer are mandatory");</span>
+    }
     
     const keywordsArray = <span class="cstat-no" title="statement not covered" >parseKeywords(keywords);</span>
-    const imageUrl = <span class="cstat-no" title="statement not covered" >req.file ? `/uploads/${req.file.filename}`:null;</span>
-    const newQuestion = <span class="cstat-no" title="statement not covered" >await prisma.question.create({</span>
+    const imageUrl = <span class="cstat-no" title="statement not covered" >req.file ? <span class="branch-0 cbranch-no" title="branch not covered" >`/uploads/${req.file.filename}`:</span>null;</span>
+    const newQuestion = await prisma.question.create({
         data: {
         question, answer,
         userId: req.user.userId, imageUrl,
@@ -877,7 +883,7 @@ module.exports = router;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-14T19:59:32.254Z
+                at 2026-05-22T15:24:19.591Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
