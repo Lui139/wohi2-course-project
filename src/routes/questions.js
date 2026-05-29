@@ -42,10 +42,10 @@ function formatQuestion(question) {
     return {
          ...question,
          //date: question.date.toISOString().split("T")[0],
-         keywords: question.keywords.map((k) => k.name),
-         userName: question.user? question.user.name : null,
+         keywords: question.keywords ? question.keywords.map((k) => k.name) : [],
+         userName: question.user ? question.user.name : null,
          attempted: question.attempts && question.attempts.length > 0,
-         attemptCount: question._count.attempts ?? 0,
+         attemptCount: question._count?.attempts ?? 0,
          user: undefined,
         _count: undefined,
         attempts: undefined,   
@@ -155,7 +155,12 @@ router.post("/", upload.single("image"), async (req, res) => {
                 where: { name: kw }, create: { name: kw },
             })), },
         },
-        include: { keywords: true, user: true  },
+        include: { 
+            keywords: true, 
+            user: true,
+            attempts: { where: { userId: req.user.userId }, take 1 },
+            _count: { select: { attempts: true }  },
+        },
     });
 
     res.status(201).json(formatQuestion(newQuestion));
@@ -227,32 +232,51 @@ router.delete("/:questionId", isOwner, async (req, res) => {
 router.post("/:questionId/play", async (req, res) => {
     const questionId = Number(req.params.questionId);
 
-    const question = await prisma.question.findUnique({where: {id: questionId}});
-    if(!question) {
+    const question = await prisma.question.findUnique({
+        where: {id: questionId }
+    });
+
+    if (!question) {
         throw new NotFoundError("Question not found");
     }
 
-// const attempt = await prisma.attempt.upsert({
-    //     where: { userId_questionId: { userId: req.user.userId, questionId } },
-    //     update: {},
-    //     create: {userId: req.user.userId, questionId}
-    // });
-
     const data = req.body;
+    const isCorrect = question.answer === data.answer;
 
-    if(question.answer === data.answer){
-        const attemptCount = await prisma.attempt.count({where: { questionId } });
+    const attempt = await prisma.attempt.upsert({
+         where: { 
+            userId_questionId: { 
+                userId: req.user.userId, 
+                questionId: questionId 
+            } 
+        },
+        update: {},
+        create: {
+            userId: req.user.userId, 
+            questionId: questionId
+        }
+    });
 
-        return res.status(201).json({
-            //id: attempt.id,
-            correct: true,
-            questionId,
-            attempted: true,
-            attemptCount,
-            correctAnswer: data.answer,
-            //createdAt: attempt.createdAt,
-        });
-    }
+    const attemptCount = await prisma.attempt.count({
+        where: { questionId: questionId }
+    });
+
+
+
+    //if(question.answer === data.answer){
+    //    const attemptCount = await prisma.attempt.count({where: { questionId } });
+
+    return res.status(201).json({
+        id: attempt.id,
+        correct: isCorrect,
+        questionId: questionId,
+        attempted: true,
+        attemptCount: attemptCount,
+        //correctAnswer: data.answer,
+        conrrectAnswer: isCorrect ? data.answer : question.answer,
+        createdAt: attempt.createdAt,
+    });
+    /*}
     else {
         return res.status(201).json({
             //id: attempt.id,
@@ -263,7 +287,7 @@ router.post("/:questionId/play", async (req, res) => {
             correctAnswer: question.answer,
             //createdAt: attempt.createdAt,
         });
-    }
+    }*/
 
 });
 
