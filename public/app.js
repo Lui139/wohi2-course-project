@@ -1,5 +1,7 @@
 // --- State ---
 let isRegisterMode = false;
+let currentKeyword = "";
+let currentDifficulty = "";
 
 // --- Helpers ---
 function getCurrentUserId() {
@@ -117,13 +119,18 @@ async function showApp() {
   await loadQuestions();
 }
 
-async function loadQuestions(keyword = "", page = 1) {
+async function loadQuestions(keyword = "", page = 1, difficulty = currentDifficulty) {
+  currentKeyword = keyword;
+  currentDifficulty = difficulty;
+
   const container = document.getElementById("questions-container");
   container.innerHTML = '<p class="loading">Loading questions...</p>';
 
   try {
     const params = new URLSearchParams({ page, limit: CONFIG.QUESTIONS_PER_PAGE });
     if (keyword) params.set("keyword", keyword);
+    if (difficulty) params.set("difficulty", difficulty);
+
     const result = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}?${params}`);
     const { data: questions, total, totalPages } = result;
     const currentUserId = getCurrentUserId();
@@ -143,10 +150,20 @@ async function loadQuestions(keyword = "", page = 1) {
       </div>
       <div class="toolbar">
         <button class="btn btn-primary" id="new-question-btn">+ New Question</button>
+        <button class="btn btn-primary" id="leaderboard-btn">Leaderboard</button>
+        <button class="btn btn-primary" id="csv-import-btn">Import CSV</button>
         <div class="search-bar">
           <input type="text" id="keyword-input" placeholder="Search by keyword..." value="${keyword}" />
+          
+          <select id="difficulty-filter" style="padding:0.55rem 1rem; background:rgba(255, 255, 255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-family:inherit">
+            <option value="">All difficulty</option>
+            <option value="easy" ${difficulty === "easy" ? "selected" : ""}>Easy</option>
+            <option value="medium" ${difficulty === "medium" ? "selected" : ""}>Medium</option>
+            <option value="hard" ${difficulty === "hard" ? "selected" : ""}>Hard</option>
+          </select>
+
           <button class="btn btn-search" id="search-btn">Search</button>
-          ${keyword ? `<button class="btn btn-clear" id="clear-btn">Clear</button>` : ""}
+          ${keyword || difficulty ? `<button class="btn btn-clear" id="clear-btn">Clear</button>` : ""}
         </div>
       </div>`;
 
@@ -161,6 +178,12 @@ async function loadQuestions(keyword = "", page = 1) {
             <a href="#" class="question-link" data-id="${q.id}">${q.question}</a>
             ${q[CONFIG.API_FIELDS.SOLVED] ? `<span class="badge-solved">Solved</span>` : ""}
           </h3>
+
+          <p class="question-meta">
+            Difficulty: <strong>${q.difficulty || "medium"}</strong>
+            ${q.userName ? ` . by ${q.userName}` : ""}
+          </p>
+                    
           ${
             q.keywords && q.keywords.length
               ? `<div class="question-keywords">${q.keywords.map((k) => `<span class="keyword">${k}</span>`).join("")}</div>`
@@ -197,23 +220,35 @@ async function loadQuestions(keyword = "", page = 1) {
     container.innerHTML = html;
 
     document.getElementById("new-question-btn").addEventListener("click", () => showQuestionForm());
+    document.getElementById("leaderboard-btn").addEventListener("click", () => showLeaderboard());
+    document.getElementById("csv-import-btn").addEventListener("click", () => showCsvImportForm());
 
     document.getElementById("search-btn").addEventListener("click", () => {
-      loadQuestions(document.getElementById("keyword-input").value.trim(), 1);
+      const selectedKeyword = document.getElementById("keyword-input").value.trim();
+      const selectedDifficulty = document.getElementById("difficulty-filter").value;
+      loadQuestions(selectedKeyword, 1, selectedDifficulty);
     });
 
     document.getElementById("keyword-input").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") loadQuestions(e.target.value.trim(), 1);
+      if (e.key === "Enter")  {
+        const selectedDifficulty = document.getElementById("difficulty-filter").value;
+        loadQuestions(e.target.value.trim(), 1, selectedDifficulty);
+      }
+    });
+
+    document.getElementById("difficulty-filter").addEventListener("change", (e) => {
+      const selectedKeyword = document.getElementById("keyword-input").value.trim();
+      loadQuestions(selectedKeyword, 1, e.target.value);
     });
 
     const clearBtn = document.getElementById("clear-btn");
-    if (clearBtn) clearBtn.addEventListener("click", () => loadQuestions());
+    if (clearBtn) clearBtn.addEventListener("click", () => loadQuestions("", 1, ""));
 
     const prevBtn = document.getElementById("prev-btn");
-    if (prevBtn) prevBtn.addEventListener("click", () => loadQuestions(keyword, page - 1));
+    if (prevBtn) prevBtn.addEventListener("click", () => loadQuestions(keyword, page - 1, difficulty));
 
     const nextBtn = document.getElementById("next-btn");
-    if (nextBtn) nextBtn.addEventListener("click", () => loadQuestions(keyword, page + 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => loadQuestions(keyword, page + 1, difficulty));
 
     container.querySelectorAll(".question-link, .read-more").forEach((el) => {
       el.addEventListener("click", (e) => {
@@ -243,6 +278,117 @@ async function loadQuestions(keyword = "", page = 1) {
   }
 }
 
+async function showLeaderboard() {
+  const container = document.getElementById("questions-container");
+  container.innerHTML = '<p class="loading">Loading leaderboard...</p>';
+
+  try {
+    const result = await apiFetch("/api/leaderboard");
+    const leaderboard = result.data || [];
+
+    let html = `
+      <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
+      <div class="question-form-wrapper">
+        <h2>Leaderboard</h2>
+    `;
+
+    if (leaderboard.length === 0) {
+      html += `<p class="empty-state">No successful attempts yet.</p>`;
+    } else {
+      html += leaderboard
+        .map(
+          (item) => `
+            <article class="question-card">
+              <h3>#${item.rank} ${item.name || "Unknown user"}</h3>
+              <p class="question-meta">${item.email || ""}</p>
+              <p class="question-answer">Successful attempts: <strong>${item.successfulAttempts}</strong></p>
+            </article>
+          `
+        )
+        .join("");
+    }
+
+    html += `</div>`;
+
+    container.innerHTML = html;
+
+    document.getElementById("back-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      loadQuestions();
+    });
+  } catch (err) {
+    container.innerHTML = `
+      <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
+      <p class="error">${err.message}</p>
+    `;
+
+    document.getElementById("back-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      loadQuestions();
+    });
+  }
+}
+
+function showCsvImportForm() {
+  const container = document.getElementById("questions-container");
+
+  container.innerHTML = `
+    <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
+    <div class="question-form-wrapper">
+      <h2>Import Questions from CSV</h2>
+
+      <p class="question-meta">
+        CSV columns must be: question, answer, keywords, difficulty
+      </p>
+
+      <form id="csv-form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="csv-file">CSV file</label>
+          <input type="file" id="csv-file" accept=".csv" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload CSV</button>
+      </form>
+
+      <p id="csv-result" class="question-answer"></p>
+      <p id="csv-error" class="error"></p>
+    </div>
+  `;
+
+  document.getElementById("back-btn").addEventListener("click", (e) => {
+    e.preventDefault();
+    loadQuestions();
+  });
+
+  document.getElementById("csv-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const errorEl = document.getElementById("csv-error");
+    const resultEl = document.getElementById("csv-result");
+
+    errorEl.textContent = "";
+    resultEl.textContent = "";
+
+    const file = document.getElementById("csv-file").files[0];
+    const body = new FormData();
+
+    body.append("file", file);
+
+    try {
+      const result = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}/import-csv`, {
+        method: "POST",
+        body,
+      });
+
+      resultEl.textContent = `Imported ${result.count} questions successfully.`;
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
+}
+
+
+
 async function loadQuestionDetail(qId) {
   const container = document.getElementById("questions-container");
   container.innerHTML = '<p class="loading">Loading...</p>';
@@ -256,7 +402,7 @@ async function loadQuestionDetail(qId) {
       <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
       <article class="question-card question-detail">
         <h3>${q.question} ${q[CONFIG.API_FIELDS.SOLVED] ? `<span class="badge-solved">Solved</span>` : ""}</h3>
-        <p class="question-meta">by ${q.userName || "Unknown"}</p>
+        <p class="question-meta">Difficulty: <strong>${q.difficulty || "medium"}</strong> . by ${q.userName || "Unknown"}</p>
         ${q.imageUrl ? `<img class="question-image" src="${q.imageUrl}" alt="">` : ""}
         <p class="question-answer">${q.answer}</p>
         ${
@@ -284,7 +430,14 @@ async function loadQuestionDetail(qId) {
       document.getElementById("detail-delete-btn").addEventListener("click", () => deleteQuestion(qId));
     }
   } catch (err) {
-    container.innerHTML = `<p class="error">${err.message}</p>`;
+    container.innerHTML = `
+    <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
+    <p class="error">${err.message}</p>`;
+
+    document.getElementById("back-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      loadQuestions();
+    });
   }
 }
 
@@ -292,13 +445,21 @@ async function loadQuestionDetail(qId) {
 async function showQuestionForm(qId) {
   const container = document.getElementById("questions-container");
   const isEdit = !!qId;
-  let q = { question: "", answer: "", keywords: [] };
+  let q = { question: "", answer: "", keywords: [], difficulty: "medium", };
 
   if (isEdit) {
     try {
       q = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}/${qId}`);
     } catch (err) {
-      container.innerHTML = `<p class="error">${err.message}</p>`;
+      container.innerHTML = `
+      <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
+      <p class="error">${err.message}</p>`;
+
+      document.getElementById("back-btn").addEventListener("click", (e) => {
+        e.preventDefault();
+        loadQuestions();
+      });
+
       return;
     }
   }
@@ -320,6 +481,16 @@ async function showQuestionForm(qId) {
           <label for="q-keywords">Keywords (comma-separated)</label>
           <input type="text" id="q-keywords" value="${q.keywords ? q.keywords.join(", ") : ""}" />
         </div>
+
+        <div class="form-group">
+          <label for="q-difficulty">Difficulty</label>
+          <select id="q-difficulty" style="width:100%;padding:0.7rem 1rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-family:inherit">
+            <option value="easy" ${q.difficulty === "easy" ? "selected" : ""}>Easy</option>
+            <option value="medium" ${!q.difficulty || q.difficulty === "medium" ? "selected" : ""}>Medium</option>
+            <option value="hard" ${q.difficulty === "hard" ? "selected" : ""}>Hard</option>
+          </select>
+        </div>
+
         <div class="form-group">
           <label for="q-image">Image ${isEdit ? "(leave blank to keep current)" : "(optional)"}</label>
           <input type="file" id="q-image" accept="image/*" />
@@ -344,6 +515,8 @@ async function showQuestionForm(qId) {
     body.append("question", document.getElementById("q-question").value);
     body.append("answer", document.getElementById("q-answer").value);
     body.append("keywords", document.getElementById("q-keywords").value);
+    body.append("difficulty", document.getElementById("q-difficulty").value);
+
     const imageFile = document.getElementById("q-image").files[0];
     if (imageFile) body.append("image", imageFile);
 
@@ -372,6 +545,8 @@ async function playQuestion(qId) {
       <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
       <div class="question-form-wrapper" style="text-align:center">
         <div class="play-question-text">${q.question}</div>
+        <p class="question-meta">Difficulty: <strong>${q.difficulty || "medium"}</strong></p>
+
         ${q.imageUrl ? `<img class="question-image" src="${q.imageUrl}" alt="" style="margin:0 auto 1rem">` : ""}
         ${
           q.keywords && q.keywords.length
@@ -424,7 +599,14 @@ async function playQuestion(qId) {
       }
     });
   } catch (err) {
-    container.innerHTML = `<p class="error">${err.message}</p>`;
+    container.innerHTML = `
+    <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
+    <p class="error">${err.message}</p>`;
+
+    document.getElementById("back-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      loadQuestions();
+    });
   }
 }
 
